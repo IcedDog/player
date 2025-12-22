@@ -17,6 +17,10 @@ This project is made possible by:
 
 Much of this program resembles any other Phigros chart player/simulator, so this section will focus solely on its unique features.
 
+### MODS!
+
+Added modifiers for extra spice. See [MODS](./MODS.md) for more details.
+
 ### User-friendly landing page
 
 Designed with [Preline UI](https://preline.co/) and [daisyUI](https://daisyui.com/), the landing page is meticulously written to be as intuitive yet powerful as possible.
