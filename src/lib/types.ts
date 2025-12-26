@@ -347,6 +347,8 @@ export type GameObject =
   | GameObjects.Rectangle
   | GameObjects.Text;
 
+// region Extras
+
 export interface PhiraExtra {
   bpm?: {
     time: [number, number, number];
@@ -354,6 +356,7 @@ export interface PhiraExtra {
   }[];
   videos?: Video[];
   effects: ShaderEffect[];
+  events: ExtraEvent[];
 }
 
 export interface Video {
@@ -394,11 +397,140 @@ export interface ShaderEffect {
   };
 }
 
+export interface ExtraEvent {
+  type: string;
+  start: [number, number, number];
+  startBeat: number;
+  end?: [number, number, number];
+  endBeat?: number;
+}
+
+export interface BaseFloatingObject extends ExtraEvent {
+  tint?: VectorVariable;
+  alpha?: ScalarVariable;
+  zIndex?: ScalarVariable;
+  blendMode?: 'normal' | 'add' | 'multiply' | 'screen'; // we don't use ERASE here. Maybe add mask later.
+  transform?: TransformEvents;
+}
+
+export interface FloatingText extends BaseFloatingObject {
+  type: 'FloatingText';
+  text: StringVariable;
+  textStyle: TextStyle;
+}
+
+export interface TextStyle {
+  // TODO: support most phaser textstyles
+  font?: string;
+  fontSize?: ScalarVariable;
+  color?: VectorVariable;
+  stroke?: VectorVariable;
+  strokeThickness?: ScalarVariable;
+  align?: 'left' | 'center' | 'right' | 'justify';
+}
+
+export interface FloatingImage extends BaseFloatingObject {
+  type: 'FloatingImage';
+  // TODO add image
+  path: string;
+}
+
+export interface RenderTexture extends ExtraEvent {
+  type: 'RenderTexture';
+  id: string;
+  xRatio?: number;
+  yRatio?: number;
+  width?: number;
+  height?: number;
+}
+
+export interface Camera extends ExtraEvent {
+  type: 'Camera';
+  id: string; // render to this id's texture
+  transform?: TransformEvents; // scale is zoom
+  ignoreRange?: // using blacklist because its easier with phaser
+  (
+    | {
+        minZIndex: number;
+        maxZIndex: number;
+      }
+    | number
+  )[];
+  enableShader?: boolean; // whether to enable *global* shader on this camera
+}
+
+export interface MainCameraTransform extends ExtraEvent {
+  type: 'MainCameraTransform';
+  transform: TransformEvents;
+}
+
+export interface PlayfieldTransform extends ExtraEvent {
+  type: 'PlayfieldTransform';
+  transform: TransformEvents;
+}
+
+export interface Blit extends ExtraEvent {
+  type: 'Blit';
+  from: string;
+  to: string;
+  shader?: string;
+  priority?: number;
+  vars?: {
+    [key: string]: Variable;
+  };
+}
+
+export interface Effect extends ExtraEvent {
+  type: 'Effect';
+  shader: string;
+  targetRange?: {
+    minZIndex: number;
+    maxZIndex: number;
+    exclusive?: boolean;
+  };
+  vars?: {
+    [key: string]: Variable;
+  };
+}
+
+export interface Reorder extends ExtraEvent {
+  type: 'Reorder';
+  fromRange: {
+    minZIndex: number;
+    maxZIndex: number;
+  };
+  toRange: {
+    minZIndex: number;
+    maxZIndex: number;
+  };
+}
+
+export interface TransformEvents {
+  x?: ScalarVariable;
+  y?: ScalarVariable;
+  clipX?: ScalarVariable;
+  clipY?: ScalarVariable;
+  clipWidth?: ScalarVariable;
+  clipHeight?: ScalarVariable;
+  scale?: ScalarVariable;
+  scaleX?: ScalarVariable;
+  scaleY?: ScalarVariable;
+  anchorX?: ScalarVariable;
+  anchorY?: ScalarVariable;
+  rotation?: ScalarVariable;
+}
+
 export type Variable = AnimatedVariable | number | number[] | string;
+
+export type ScalarVariable = ScalarVariableEvent[] | number;
+
+export type VectorVariable = VectorVariableEvent[] | number[];
+
+export type StringVariable = StringVariableEvent[] | string;
 
 export type AnimatedVariable = VariableEvent[];
 
-export type VariableEvent = ScalarVariableEvent | VectorVariableEvent;
+export type VariableEvent = ScalarVariableEvent | VectorVariableEvent | StringVariableEvent;
 
 interface ScalarVariableEvent extends BaseVariableEvent {
   start: number;
@@ -408,6 +540,11 @@ interface ScalarVariableEvent extends BaseVariableEvent {
 interface VectorVariableEvent extends BaseVariableEvent {
   start: number[];
   end: number[];
+}
+
+interface StringVariableEvent extends BaseVariableEvent {
+  start: string;
+  end: string;
 }
 
 interface BaseVariableEvent {
